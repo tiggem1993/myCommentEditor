@@ -1,8 +1,10 @@
 {
-  "name": "new",
+  "name":
+    "dreaftjs-with-mention-and-hashtag-with-custom-defined-mention-markdown-like-xyz123-and-hashtag",
   "version": "1.0.0",
-  "description": "",
-  "keywords": [],
+  "description":
+    "In this example i am trying to generate custom defined @mention and hashtag  from Draftjs and Its Draftjs plugin.",
+  "keywords": ["draftjs-plugin", "mention", "hashtag", "markdown", "draftjs"],
   "homepage": "https://codesandbox.io/s/new",
   "main": "src/index.js",
   "dependencies": {
