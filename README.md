@@ -1,2 +1,0 @@
-# myCommentEditor
-Created with CodeSandbox
