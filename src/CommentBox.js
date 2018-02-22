@@ -57,7 +57,8 @@ class CommentBox extends Component {
       hasContent: false,
       imgSrc: "",
       imgSelected: false,
-      isFocus: false
+      isFocus: false,
+      markdown: "no output"
     };
 
     const content = window.localStorage.getItem("content");
@@ -105,6 +106,7 @@ class CommentBox extends Component {
     //let markup = draftToMarkdown(JSON.parse(draftRaw), mentionConfig);
     let markup = draftToMarkdown(JSON.parse(draftRaw));
     console.log("markup :", markup);
+    this.setState({ markdown: markup });
     //
   };
 
@@ -113,21 +115,13 @@ class CommentBox extends Component {
     const { MentionSuggestions } = mentionPlugin;
     return (
       <div>
-        <div
-          style={{
-            width: "100vw",
-            display: "block",
-            fontSize: 14,
-            overflow: "hidden",
-            padding: 10
-          }}
-        >
-          <MentionSuggestions
-            onSearchChange={that.onSearchChange}
-            suggestions={that.state.suggestions}
-            entryComponent={Entry}
-          />
-        </div>
+        <p>
+          <strong>Example input:</strong>
+          <br />
+          <small>
+            Hi @juliandoesstuff and @nikgrafs , wish you #happynewyear 2018.
+      </small>
+        </p>
         <div
           onClick={that.focus}
           style={{
@@ -160,6 +154,29 @@ class CommentBox extends Component {
         >
           Generate Markdown
         </div>
+        
+        <div>
+        <p>
+          <strong>My output:</strong><br/>
+            {that.state.markdown}
+          </p>
+        </div>
+
+        <div
+          style={{
+            width: "100vw",
+            display: "block",
+            fontSize: 14,
+            overflow: "hidden",
+            padding: 10
+          }}
+        >
+          <MentionSuggestions
+            onSearchChange={that.onSearchChange}
+            suggestions={that.state.suggestions}
+            entryComponent={Entry}
+          />
+        </div>
 
         <div />
       </div>
@@ -183,6 +200,7 @@ const Entry = props => {
       <div className={theme.mentionSuggestionsEntryContainer}>
         <div className={theme.mentionSuggestionsEntryContainerLeft}>
           <img
+            width={50}
             src={mention.get("avatar")}
             className={theme.mentionSuggestionsEntryAvatar}
           />
@@ -198,6 +216,7 @@ const Entry = props => {
           </div>
         </div>
       </div>
+      <div />
     </div>
   );
 };
