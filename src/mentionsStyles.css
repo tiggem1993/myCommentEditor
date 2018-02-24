@@ -44,7 +44,6 @@
 }
 
 .mentionSuggestionsEntryFocused {
-  composes: mentionSuggestionsEntry;
   background-color: #e6f3ff;
 }
 
@@ -53,9 +52,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.mentionSuggestionsEntryText {
 }
 
 .mentionSuggestionsEntryTitle {

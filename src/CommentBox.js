@@ -105,8 +105,13 @@ class CommentBox extends Component {
     };*/
     //let markup = draftToMarkdown(JSON.parse(draftRaw), mentionConfig);
     let markup = draftToMarkdown(JSON.parse(draftRaw));
-    console.log("markup :", markup);
-    this.setState({ markdown: markup });
+
+    const regex = /(^|\s)@([A-z,0-9]+)\b/gi;
+    const subst = `$1[@$2]`;
+    const result = markup.replace(regex, subst);
+
+    console.log("markup :", result);
+    this.setState({ markdown: result });
     //
   };
 
