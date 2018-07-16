@@ -18,6 +18,8 @@ import editorStyles from "./editorStyles.css";
 import mentionsStyles from "./mentionsStyles.css";
 import mentions from "./mentions";
 import { stateFromHTML } from "draft-js-import-html";
+import getUrls from "get-urls";
+import values from "lodash/values";
 const hashtagPlugin = createHashtagPlugin();
 
 const positionSuggestions = ({ state, props }) => {
@@ -59,7 +61,8 @@ class CommentBox extends Component {
       imgSrc: "",
       imgSelected: false,
       isFocus: false,
-      markdown: "no output"
+      markdown: "no output",      
+      firstURL:''
     };
 
     const content = window.localStorage.getItem("content");
@@ -78,8 +81,9 @@ class CommentBox extends Component {
       ? true
       : false;
     const contentState = editorState.getCurrentContent();
-    that.saveContent(contentState);
+    that.saveContent(contentState);    
     that.setState({ editorState });
+    that.setFirstURL();
   };
 
   saveContent = content => {
@@ -88,6 +92,21 @@ class CommentBox extends Component {
       JSON.stringify(convertToRaw(content))
     );
   };
+
+  setFirstURL = () =>{
+    var draftRaw = localStorage.getItem("content");
+    let markup = draftToMarkdown(JSON.parse(draftRaw));
+
+    const regex = /(^|\s)@([A-z,0-9]+)\b/gi;
+    const subst = `$1[@$2]`;
+    const result = markup.replace(regex, subst);
+    let urlArray = result.match(
+      /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,})/gi
+    );
+    if (urlArray){
+      this.setState({ firstURL: urlArray[0] });
+    }    
+  }
 
   onSearchChange = ({ value }) => {
     this.setState({
@@ -113,7 +132,7 @@ class CommentBox extends Component {
     const result = markup.replace(regex, subst);
 
     console.log("markup :", result);
-    this.setState({ markdown: result });
+    this.setState({ markdown: result});
     //
   };
 
@@ -123,25 +142,6 @@ class CommentBox extends Component {
     console.log(sampleMarkup);
     let contentState = stateFromHTML(sampleMarkup);
     that.setState({ editorState: EditorState.createWithContent(contentState) });
-    //that.focus();
-    /*const decorator = new CompositeDecorator([
-      {
-        strategy: that.findLinkEntities,
-        component: that.Link
-      }
-    ]);*/
-    //var sampleMarkup = document.getElementById('msg').innerHTML;
-    /*const sampleMarkup =
-      '<b>Bold text</b>, <i>Italic text</i><br/ ><br />' +
-      '<a href="https://www.facebook.com">Example link</a><br /><br/ >' +
-      '<img src="https://raw.githubusercontent.com/facebook/draft-js/master/examples/draft-0-10-0/convertFromHTML/image.png" height="112" width="200" />';
-    const blocksFromHTML = convertFromHTML(sampleMarkup);
-    const state = ContentState.createFromBlockArray(
-      blocksFromHTML.contentBlocks,
-      blocksFromHTML.entityMap,
-    );       
-    that.setState({ editorState: EditorState.createWithContent(state, decorator)});  
-    that.focus();*/
   };
 
   render() {
@@ -194,6 +194,16 @@ class CommentBox extends Component {
             <strong>My output:</strong>
             <br />
             {that.state.markdown}
+          </p>
+          <p>
+            <strong>URL found:</strong>
+            <br />
+            {
+              !that.state.firstURL.length? 
+              "no url"
+             : 
+             <span>{that.state.firstURL}</span>
+            }
           </p>
         </div>
 
