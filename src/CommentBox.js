@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
 import {
+  CompositeDecorator,
   EditorState,
-  ContentState,
   convertToRaw,
   convertFromRaw
 } from "draft-js";
@@ -17,7 +17,7 @@ import "draft-js-hashtag-plugin/lib/plugin.css";
 import editorStyles from "./editorStyles.css";
 import mentionsStyles from "./mentionsStyles.css";
 import mentions from "./mentions";
-
+import { stateFromHTML } from "draft-js-import-html";
 const hashtagPlugin = createHashtagPlugin();
 
 const positionSuggestions = ({ state, props }) => {
@@ -50,6 +50,7 @@ const plugins = [hashtagPlugin, mentionPlugin];
 class CommentBox extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       editorState: EditorState.createEmpty(),
       EmojiSelectIsOpen: false,
@@ -72,12 +73,13 @@ class CommentBox extends Component {
   }
 
   onChange = editorState => {
-    this.state.hasContent = editorState.getCurrentContent().hasText()
+    var that = this;
+    that.state.hasContent = editorState.getCurrentContent().hasText()
       ? true
       : false;
     const contentState = editorState.getCurrentContent();
-    this.saveContent(contentState);
-    this.setState({ editorState });
+    that.saveContent(contentState);
+    that.setState({ editorState });
   };
 
   saveContent = content => {
@@ -115,6 +117,33 @@ class CommentBox extends Component {
     //
   };
 
+  editMsg = () => {
+    var that = this;
+    var sampleMarkup = document.getElementById("msg").innerHTML;
+    console.log(sampleMarkup);
+    let contentState = stateFromHTML(sampleMarkup);
+    that.setState({ editorState: EditorState.createWithContent(contentState) });
+    //that.focus();
+    /*const decorator = new CompositeDecorator([
+      {
+        strategy: that.findLinkEntities,
+        component: that.Link
+      }
+    ]);*/
+    //var sampleMarkup = document.getElementById('msg').innerHTML;
+    /*const sampleMarkup =
+      '<b>Bold text</b>, <i>Italic text</i><br/ ><br />' +
+      '<a href="https://www.facebook.com">Example link</a><br /><br/ >' +
+      '<img src="https://raw.githubusercontent.com/facebook/draft-js/master/examples/draft-0-10-0/convertFromHTML/image.png" height="112" width="200" />';
+    const blocksFromHTML = convertFromHTML(sampleMarkup);
+    const state = ContentState.createFromBlockArray(
+      blocksFromHTML.contentBlocks,
+      blocksFromHTML.entityMap,
+    );       
+    that.setState({ editorState: EditorState.createWithContent(state, decorator)});  
+    that.focus();*/
+  };
+
   render() {
     var that = this;
     const { MentionSuggestions } = mentionPlugin;
@@ -125,7 +154,7 @@ class CommentBox extends Component {
           <br />
           <small>
             Hi @juliandoesstuff and @nikgrafs , wish you #happynewyear 2018.
-      </small>
+          </small>
         </p>
         <div
           onClick={that.focus}
@@ -159,14 +188,39 @@ class CommentBox extends Component {
         >
           Generate Markdown
         </div>
-        
+
         <div>
-        <p>
-          <strong>My output:</strong><br/>
+          <p>
+            <strong>My output:</strong>
+            <br />
             {that.state.markdown}
           </p>
         </div>
 
+        <div>
+          <p>
+            <strong>Edit this HTML:</strong>
+            <br />
+            <span id="msg">
+              Hi <a href="juliandoesstuff">@juliandoesstuff</a> and{" "}
+              <a href="nikgrafs">@nikgrafs</a> , wish you{" "}
+              <a href="#happynewyear">#happynewyear</a> 2018.
+            </span>
+          </p>
+        </div>
+        <div
+          onClick={that.editMsg}
+          style={{
+            border: "1px solid red",
+            fontSize: 12,
+            backgroundColor: "rgba(0,0,0,0.15)",
+            padding: 4,
+            borderRadius: 4,
+            width: 150
+          }}
+        >
+          Edit Content
+        </div>
         <div
           style={{
             width: "100vw",
@@ -205,6 +259,7 @@ const Entry = props => {
       <div className={theme.mentionSuggestionsEntryContainer}>
         <div className={theme.mentionSuggestionsEntryContainerLeft}>
           <img
+            alt=""
             width={50}
             src={mention.get("avatar")}
             className={theme.mentionSuggestionsEntryAvatar}

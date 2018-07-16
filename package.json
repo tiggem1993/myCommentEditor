@@ -10,6 +10,7 @@
   "dependencies": {
     "draft-js": "0.10.5",
     "draft-js-hashtag-plugin": "2.0.1",
+    "draft-js-import-html": "1.2.1",
     "draft-js-mention-plugin": "2.0.1",
     "draft-js-plugins-editor": "2.0.4",
     "draftjs-to-markdown": "0.5.1",
