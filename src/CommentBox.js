@@ -86,6 +86,8 @@ class CommentBox extends Component {
       ? true
       : false;
     const contentState = editorState.getCurrentContent();
+    console.clear();
+    console.log(convertToRaw(contentState));
     that.saveContent(contentState);
     that.setState({ editorState });
     that.setFirstURL();
@@ -99,7 +101,7 @@ class CommentBox extends Component {
   };
 
   setFirstURL = () => {
-    var draftRaw = localStorage.getItem("content");
+    let draftRaw = localStorage.getItem("content");
     let markup = draftToMarkdown(JSON.parse(draftRaw));
 
     const regex = /(^|\s)@([A-z,0-9]+)\b/gi;
@@ -134,9 +136,11 @@ class CommentBox extends Component {
 
     const regex = /(^|\s)@([A-z,0-9]+)\b/gi;
     const subst = `$1[@$2]`;
-    const result = markup.replace(regex, subst);
+    const result = markup.replace(regex, subst).trim();
 
     console.log("markup :", result);
+    var a = result.split("\n");
+    console.log("markup line:", a);
     this.setState({ markdown: result });
     //
   };
