@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
 import {
+  ContentState,
   CompositeDecorator,
   EditorState,
   convertToRaw,
-  convertFromRaw
+  convertFromRaw,
+  convertFromHTML
 } from "draft-js";
+import DraftPasteProcessor from "draft-js/lib/DraftPasteProcessor";
 import Editor, { createEditorStateWithText } from "draft-js-plugins-editor";
 import createHashtagPlugin from "draft-js-hashtag-plugin";
 import createMentionPlugin, {
@@ -20,6 +23,7 @@ import mentions from "./mentions";
 import { stateFromHTML } from "draft-js-import-html";
 import getUrls from "get-urls";
 import values from "lodash/values";
+import find from "lodash/find";
 const hashtagPlugin = createHashtagPlugin();
 
 const positionSuggestions = ({ state, props }) => {
@@ -61,8 +65,8 @@ class CommentBox extends Component {
       imgSrc: "",
       imgSelected: false,
       isFocus: false,
-      markdown: "no output",      
-      firstURL:''
+      markdown: "no output",
+      firstURL: ""
     };
 
     const content = window.localStorage.getItem("content");
@@ -76,12 +80,12 @@ class CommentBox extends Component {
   }
 
   onChange = editorState => {
-    var that = this;
+    let that = this;
     that.state.hasContent = editorState.getCurrentContent().hasText()
       ? true
       : false;
     const contentState = editorState.getCurrentContent();
-    that.saveContent(contentState);    
+    that.saveContent(contentState);
     that.setState({ editorState });
     that.setFirstURL();
   };
@@ -93,7 +97,7 @@ class CommentBox extends Component {
     );
   };
 
-  setFirstURL = () =>{
+  setFirstURL = () => {
     var draftRaw = localStorage.getItem("content");
     let markup = draftToMarkdown(JSON.parse(draftRaw));
 
@@ -103,10 +107,10 @@ class CommentBox extends Component {
     let urlArray = result.match(
       /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,})/gi
     );
-    if (urlArray){
+    if (urlArray) {
       this.setState({ firstURL: urlArray[0] });
-    }    
-  }
+    }
+  };
 
   onSearchChange = ({ value }) => {
     this.setState({
@@ -132,16 +136,71 @@ class CommentBox extends Component {
     const result = markup.replace(regex, subst);
 
     console.log("markup :", result);
-    this.setState({ markdown: result});
+    this.setState({ markdown: result });
     //
   };
 
   editMsg = () => {
-    var that = this;
-    var sampleMarkup = document.getElementById("msg").innerHTML;
+    let that = this;
+    let sampleMarkup = document.getElementById("msg").innerHTML;
     console.log(sampleMarkup);
     let contentState = stateFromHTML(sampleMarkup);
     that.setState({ editorState: EditorState.createWithContent(contentState) });
+  };
+
+  editMarkdownMsg = () => {
+    let editorState;
+    let mention_peoples_info = [
+      { id: "1", username_updated: 0, name: "MRUSSELL247" },
+      { id: "2", username_updated: 0, name: "juliandoesstuff" },
+      { id: "3", username_updated: 1, name: "jyopur" },
+      { id: "4", username_updated: 1, name: "mxstbr" },
+      { id: "5", username_updated: 0, name: "nikgraf" }
+    ];
+    let markdown =
+      "Hi [@2] and [@4], wish you #happynewyear 2018. see your card http://www.123greetings.com/birthday/happy_birthday/birthday191.html. Thanks";
+    let statusHTML = markdown.replace(
+      /\b((?:https?|ftp):\/\/[^\s"'<>]+)\b|\b(www\.[^\s"'<>]+)\b|\b(\w[\w.+-]*@[\w.-]+\.[a-z]{2,6})\b|#([a-z0-9]+)|(\[\@\w+\])/gi,
+      function(matched) {
+        if (matched.match(/\b((?:https?|ftp):\/\/[^\s"'<>]+)\b/gi) != null) {
+          return (
+            '<a target="_blank" href="' + matched + '">' + matched + "</a>"
+          );
+        } else if (matched.match(/\b(www\.[^\s"'<>]+)\b/gi) != null) {
+          return (
+            '<a  target="_blank"  href="' + matched + '">' + matched + "</a>"
+          );
+        } else if (matched.match(/#([a-z0-9]+)/gi) != null) {
+          return '<a href="/' + matched + '">' + matched + "</a>";
+        } else if (matched.match(/(\[\@\w+\])/gi) != null) {
+          var stringDigit = matched.match(/\d+/gi)[0];
+          var userInfo = find(mention_peoples_info, function(o) {
+            return o.id === stringDigit;
+          });
+          return (
+            '<a href="javascript:void(0)" onClick="{(e)=>that.goToProfile(' +
+            stringDigit +
+            "," +
+            userInfo.username_updated +
+            ')}">' +
+            userInfo.name +
+            "</a>"
+          );
+        } else {
+          return matched;
+        }
+      }
+    );
+    const blocksFromHTML = convertFromHTML(statusHTML);
+    //const processedHTML = DraftPasteProcessor.processHTML(blocksFromHTML);
+    const contentState = ContentState.createFromBlockArray(
+      blocksFromHTML.contentBlocks,
+      blocksFromHTML.entityMap
+    );
+    //move focus to the end.
+    editorState = EditorState.createWithContent(contentState);
+    editorState = EditorState.moveFocusToEnd(editorState);
+    this.setState({ editorState: editorState });
   };
 
   render() {
@@ -198,12 +257,11 @@ class CommentBox extends Component {
           <p>
             <strong>URL found:</strong>
             <br />
-            {
-              !that.state.firstURL.length? 
+            {!that.state.firstURL.length ? (
               "no url"
-             : 
-             <span>{that.state.firstURL}</span>
-            }
+            ) : (
+              <span>{that.state.firstURL}</span>
+            )}
           </p>
         </div>
 
@@ -229,7 +287,25 @@ class CommentBox extends Component {
             width: 150
           }}
         >
-          Edit Content
+          Edit Content DOM
+        </div>
+        <p>
+          <strong>Markdown to HTML output:</strong>
+          <br />
+          {that.state.htmlmarkup}
+        </p>
+        <div
+          onClick={that.editMarkdownMsg}
+          style={{
+            border: "1px solid red",
+            fontSize: 12,
+            backgroundColor: "rgba(0,0,0,0.15)",
+            padding: 4,
+            borderRadius: 4,
+            width: 150
+          }}
+        >
+          Edit Content Markdown
         </div>
         <div
           style={{
