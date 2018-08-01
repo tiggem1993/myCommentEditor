@@ -66,7 +66,8 @@ class CommentBox extends Component {
       imgSelected: false,
       isFocus: false,
       markdown: "no output",
-      firstURL: ""
+      firstURL: "",
+      markdownHTML: ""
     };
 
     const content = window.localStorage.getItem("content");
@@ -159,7 +160,7 @@ class CommentBox extends Component {
     ];
     let markdown =
       "Hi [@2] and [@4], wish you #happynewyear 2018. see your card http://www.123greetings.com/birthday/happy_birthday/birthday191.html. Thanks";
-    let statusHTML = markdown.replace(
+    let markdownHTML = markdown.replace(
       /\b((?:https?|ftp):\/\/[^\s"'<>]+)\b|\b(www\.[^\s"'<>]+)\b|\b(\w[\w.+-]*@[\w.-]+\.[a-z]{2,6})\b|#([a-z0-9]+)|(\[\@\w+\])/gi,
       function(matched) {
         if (matched.match(/\b((?:https?|ftp):\/\/[^\s"'<>]+)\b/gi) != null) {
@@ -191,7 +192,7 @@ class CommentBox extends Component {
         }
       }
     );
-    const blocksFromHTML = convertFromHTML(statusHTML);
+    const blocksFromHTML = convertFromHTML(markdownHTML);
     //const processedHTML = DraftPasteProcessor.processHTML(blocksFromHTML);
     const contentState = ContentState.createFromBlockArray(
       blocksFromHTML.contentBlocks,
@@ -200,7 +201,7 @@ class CommentBox extends Component {
     //move focus to the end.
     editorState = EditorState.createWithContent(contentState);
     editorState = EditorState.moveFocusToEnd(editorState);
-    this.setState({ editorState: editorState });
+    this.setState({ editorState: editorState, markdownHTML: markdownHTML });
   };
 
   render() {
@@ -264,49 +265,72 @@ class CommentBox extends Component {
             )}
           </p>
         </div>
-
-        <div>
+        <fieldset>
+          <legend>HTML to draftjs:</legend>
+          <div>
+            <p>
+              <strong>Edit this HTML:</strong>
+              <br />
+              <span id="msg">
+                Hi <a href="juliandoesstuff">@juliandoesstuff</a> and{" "}
+                <a href="nikgrafs">@nikgrafs</a> , wish you{" "}
+                <a href="#happynewyear">#happynewyear</a> 2018.
+              </span>
+            </p>
+          </div>
+          <center>
+            <div
+              onClick={that.editMsg}
+              style={{
+                border: "1px solid red",
+                fontSize: 12,
+                backgroundColor: "rgba(0,0,0,0.15)",
+                padding: 4,
+                borderRadius: 4,
+                width: 150
+              }}
+            >
+              Edit Content DOM
+            </div>
+          </center>
+        </fieldset>
+        <fieldset>
+          <legend>Markdown to draftjs/HTML:</legend>
           <p>
-            <strong>Edit this HTML:</strong>
+            <strong>Markdown</strong>
             <br />
-            <span id="msg">
-              Hi <a href="juliandoesstuff">@juliandoesstuff</a> and{" "}
-              <a href="nikgrafs">@nikgrafs</a> , wish you{" "}
-              <a href="#happynewyear">#happynewyear</a> 2018.
-            </span>
+            Hi [@2] and [@4], wish you #happynewyear 2018. see your card
+            http://www.123greetings.com/birthday/happy_birthday/birthday191.html.
+            Thanks
           </p>
-        </div>
-        <div
-          onClick={that.editMsg}
-          style={{
-            border: "1px solid red",
-            fontSize: 12,
-            backgroundColor: "rgba(0,0,0,0.15)",
-            padding: 4,
-            borderRadius: 4,
-            width: 150
-          }}
-        >
-          Edit Content DOM
-        </div>
-        <p>
-          <strong>Markdown to HTML output:</strong>
-          <br />
-          {that.state.htmlmarkup}
-        </p>
-        <div
-          onClick={that.editMarkdownMsg}
-          style={{
-            border: "1px solid red",
-            fontSize: 12,
-            backgroundColor: "rgba(0,0,0,0.15)",
-            padding: 4,
-            borderRadius: 4,
-            width: 150
-          }}
-        >
-          Edit Content Markdown
-        </div>
+          <p>
+            <strong>Markdown to HTML output:</strong>
+            <br />
+            {that.state.markdownHTML}
+          </p>
+          <p>
+            <strong>Markdown to HTML:</strong>
+            <br />
+            <span
+              dangerouslySetInnerHTML={{ __html: that.state.markdownHTML }}
+            />
+          </p>
+          <center>
+            <div
+              onClick={that.editMarkdownMsg}
+              style={{
+                border: "1px solid red",
+                fontSize: 12,
+                backgroundColor: "rgba(0,0,0,0.15)",
+                padding: 4,
+                borderRadius: 4,
+                width: 150
+              }}
+            >
+              Edit Content Markdown
+            </div>
+          </center>
+        </fieldset>
         <div
           style={{
             width: "100vw",
